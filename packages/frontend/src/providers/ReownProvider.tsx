@@ -3,7 +3,13 @@
 import { createAppKit } from "@reown/appkit/react";
 
 import { WagmiProvider } from "wagmi";
-import { arbitrum, mainnet } from "@reown/appkit/networks";
+import {
+  arbitrum,
+  base,
+  baseSepolia,
+  sepolia,
+  mainnet,
+} from "@reown/appkit/networks";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { WagmiAdapter } from "@reown/appkit-adapter-wagmi";
 
@@ -15,14 +21,14 @@ const projectId = "f33e3d88d12229f22df549cace373781";
 
 // 2. Create a metadata object - optional
 const metadata = {
-  name: "prediction-market",
-  description: "AppKit Example",
+  name: "web3-social-app",
+  description: "Web3 Social App",
   url: "https://reown.com/appkit", // origin must match your domain & subdomain
   icons: ["https://assets.reown.com/reown-profile-pic.png"],
 };
 
 // 3. Set the networks
-const networks = [mainnet, arbitrum];
+const networks = [mainnet, arbitrum, baseSepolia, base, sepolia];
 
 // 4. Create Wagmi Adapter
 const wagmiAdapter = new WagmiAdapter({
