@@ -1,6 +1,6 @@
 import { useReadContract, useBlockNumber } from 'wagmi'
 import { getSocialMediaContract } from '../utils'
-import type { Post } from '../types'
+import type { SocialMedia } from '../types'
 
 export interface UseGetMessagesProps {
   postIds?: bigint[]
@@ -8,7 +8,7 @@ export interface UseGetMessagesProps {
 }
 
 export interface UseGetMessagesReturn {
-  posts: any[]
+  posts: SocialMedia.PostStructOutput[]
   isLoading: boolean
   isError: boolean
   error: Error | null
@@ -54,7 +54,7 @@ export function useGetMessages({
     query: {
       enabled: enabled && postIdsToFetch.length > 0,
       select: (data) => {
-        return [data] as any[]
+        return [data] as SocialMedia.PostStructOutput[]
       },
     },
   })
@@ -77,7 +77,7 @@ export interface UseGetSinglePostProps {
 }
 
 export interface UseGetSinglePostReturn {
-  post: any | undefined
+  post: SocialMedia.PostStructOutput | undefined
   isLoading: boolean
   isError: boolean
   error: Error | null
@@ -108,7 +108,7 @@ export function useGetSinglePost({
   })
 
   return {
-    post,
+    post: post as SocialMedia.PostStructOutput | undefined,
     isLoading,
     isError,
     error,
@@ -123,7 +123,7 @@ export interface UseGetPostRepliesProps {
 
 export interface UseGetPostRepliesReturn {
   replyIds: readonly bigint[]
-  replies: any[]
+  replies: SocialMedia.PostStructOutput[]
   isLoading: boolean
   isError: boolean
   error: Error | null
@@ -151,7 +151,7 @@ export function useGetPostReplies({
     },
   })
 
-  const replies: any[] = []
+  const replies: SocialMedia.PostStructOutput[] = []
   const isLoading = isLoadingIds
   const isError = isErrorIds
 

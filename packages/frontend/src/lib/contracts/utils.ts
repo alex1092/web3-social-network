@@ -17,7 +17,7 @@ export const getSocialMediaContract = (): ContractConfig => ({
   chainId: CHAIN_ID,
 })
 
-export const handleContractError = (error: any, functionName: string) => {
+export const handleContractError = (error: Error | { message?: string }, functionName: string) => {
   console.error(`Contract error in ${functionName}:`, error)
   
   if (error.message?.includes('User rejected')) {

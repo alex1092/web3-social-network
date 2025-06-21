@@ -8,7 +8,7 @@ import {
 } from 'wagmi'
 import { useState } from 'react'
 import { getSocialMediaContract, handleContractError } from '../utils'
-import type { User } from '../types'
+import type { SocialMedia } from '../types'
 import type { Address } from 'viem'
 
 export interface UseUserProfileProps {
@@ -17,7 +17,7 @@ export interface UseUserProfileProps {
 }
 
 export interface UseUserProfileReturn {
-  user: any | undefined
+  user: SocialMedia.UserStructOutput | undefined
   isLoading: boolean
   isError: boolean
   error: Error | null
@@ -145,7 +145,7 @@ export function useUserProfile({
         args: [newUsername, bio],
       })
     } catch (err) {
-      const errorMessage = handleContractError(err, 'registerUser')
+      const errorMessage = handleContractError(err as Error, 'registerUser')
       setActionError(errorMessage)
     }
   }
@@ -163,7 +163,7 @@ export function useUserProfile({
         args: [userToFollow],
       })
     } catch (err) {
-      const errorMessage = handleContractError(err, 'followUser')
+      const errorMessage = handleContractError(err as Error, 'followUser')
       setActionError(errorMessage)
     }
   }
@@ -181,7 +181,7 @@ export function useUserProfile({
         args: [userToUnfollow],
       })
     } catch (err) {
-      const errorMessage = handleContractError(err, 'unfollowUser')
+      const errorMessage = handleContractError(err as Error, 'unfollowUser')
       setActionError(errorMessage)
     }
   }
@@ -215,7 +215,7 @@ export function useUserProfile({
   }
 
   return {
-    user,
+    user: user as SocialMedia.UserStructOutput | undefined,
     isLoading,
     isError,
     error,
