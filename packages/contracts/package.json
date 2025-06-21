@@ -7,6 +7,8 @@
     "test": "hardhat test",
     "deploy:testnet": "hardhat run scripts/deploy.ts --network arbitrumSepolia",
     "deploy:mainnet": "hardhat run scripts/deploy.ts --network arbitrumOne",
+    "deploy:base-sepolia": "hardhat run scripts/deploy.ts --network baseSepolia",
+    "deploy:base": "hardhat run scripts/deploy.ts --network base",
     "verify": "hardhat run scripts/verify.ts",
     "typechain": "typechain --target ethers-v6 --out-dir typechain 'artifacts/contracts/**/*.sol/*.json'"
   },
