@@ -1,4 +1,4 @@
-import { ethers } from "hardhat";
+import { ethers, run } from "hardhat";
 
 async function main() {
   const signers = await ethers.getSigners();
@@ -43,6 +43,49 @@ async function main() {
   );
 
   console.log("Deployment info saved to deployments/");
+
+  // Auto-verify contract if not on localhost
+  const networkName = process.env.HARDHAT_NETWORK || "localhost";
+  if (networkName !== "localhost" && networkName !== "hardhat") {
+    console.log("\n🔍 Verifying contract on block explorer...");
+    
+    try {
+      // Wait a bit for the contract to be indexed
+      console.log("Waiting 30 seconds for contract to be indexed...");
+      await new Promise(resolve => setTimeout(resolve, 30000));
+
+      await run("verify:verify", {
+        address: contractAddress,
+        constructorArguments: [],
+      });
+      
+      console.log("✅ Contract verified successfully!");
+      console.log(`📋 View verified contract at: https://${getExplorerUrl(networkName)}/address/${contractAddress}#code`);
+    } catch (error: any) {
+      if (error.message.toLowerCase().includes("already verified")) {
+        console.log("✅ Contract is already verified!");
+      } else {
+        console.log("❌ Verification failed:", error.message);
+        console.log("You can manually verify using:");
+        console.log(`npx hardhat verify --network ${networkName} ${contractAddress}`);
+      }
+    }
+  }
+}
+
+function getExplorerUrl(network: string): string {
+  switch (network) {
+    case "baseSepolia":
+      return "sepolia.basescan.org";
+    case "base":
+      return "basescan.org";
+    case "arbitrumSepolia":
+      return "sepolia.arbiscan.io";
+    case "arbitrumOne":
+      return "arbiscan.io";
+    default:
+      return "etherscan.io";
+  }
 }
 
 main()
