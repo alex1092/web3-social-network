@@ -3,33 +3,16 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint"
-  },
-  "dependencies": {
-    "@radix-ui/react-slot": "^1.2.3",
-    "@reown/appkit": "^1.7.10",
-    "@reown/appkit-adapter-wagmi": "^1.7.10",
-    "@tanstack/react-query": "^5.80.10",
-    "class-variance-authority": "^0.7.1",
-    "clsx": "^2.1.1",
-    "lucide-react": "^0.519.0",
-    "next": "15.3.4",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
-    "tailwind-merge": "^3.3.1",
-    "viem": "^2.31.3",
-    "wagmi": "^2.15.6"
+    "dev": "pnpm --filter @web3-social/frontend dev",
+    "build": "pnpm run build:contracts && pnpm run build:shared && pnpm run build:frontend",
+    "build:contracts": "pnpm --filter @web3-social/contracts compile",
+    "build:shared": "pnpm --filter @web3-social/shared build",
+    "build:frontend": "pnpm --filter @web3-social/frontend build",
+    "test": "pnpm --filter @web3-social/contracts test",
+    "lint": "pnpm --filter @web3-social/frontend lint"
   },
   "devDependencies": {
-    "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "tailwindcss": "^4",
-    "tw-animate-css": "^1.3.4",
     "typescript": "^5"
   }
 }

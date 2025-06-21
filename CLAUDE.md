@@ -4,33 +4,49 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Development Commands
 
-- `pnpm dev` - Start development server with Turbopack (faster than standard Next.js dev)
-- `pnpm build` - Build for production
-- `pnpm start` - Start production server
-- `pnpm lint` - Run ESLint
+**Root Commands:**
+- `pnpm dev` - Start frontend development server
+- `pnpm build` - Build all packages (contracts, shared, frontend)
+- `pnpm test` - Run smart contract tests
+- `pnpm lint` - Run frontend linting
+
+**Package-specific Commands:**
+- `pnpm --filter @web3-social/contracts compile` - Compile smart contracts
+- `pnpm --filter @web3-social/contracts test` - Run contract tests
+- `pnpm --filter @web3-social/contracts deploy:testnet` - Deploy to Arbitrum Sepolia
+- `pnpm --filter @web3-social/shared build` - Build shared types package
+
+## Development Best Practices
+
+- When working on an issue we should create a new branch so we can work in isolation 
 
 ## Architecture Overview
 
-This is a Next.js 15 web3 social application built with:
+This is a **monorepo** containing a fully on-chain web3 social application:
 
-- **Framework**: Next.js 15 with App Router and React 19
-- **Styling**: Tailwind CSS v4 with shadcn/ui components (New York style)
-- **Web3 Integration**: Reown AppKit (formerly WalletConnect) with Wagmi for wallet connectivity
-- **State Management**: TanStack Query for server state
-- **Package Manager**: pnpm
+### Monorepo Structure
+```
+packages/
+├── contracts/     # Smart contracts (Hardhat + TypeScript)
+├── frontend/      # Next.js 15 web app
+└── shared/        # Shared types and utilities
+```
+
+### Technology Stack
+- **Smart Contracts**: Solidity with Hardhat, deployed on Arbitrum
+- **Frontend**: Next.js 15 with App Router, React 19, Tailwind CSS v4
+- **Web3 Integration**: Reown AppKit + Wagmi for wallet connectivity
+- **State Management**: TanStack Query for blockchain state
+- **Package Manager**: pnpm workspaces
 
 ### Key Architecture Points
 
-**Web3 Setup**: The app uses Reown AppKit for wallet connections, configured in `src/providers/ReownProvider.tsx` with support for Mainnet and Arbitrum networks. The provider wraps the entire app in `src/app/layout.tsx`.
+**On-Chain First**: All social data (messages, likes, follows) stored on Arbitrum blockchain for true decentralization and censorship resistance.
 
-**Component System**: Uses shadcn/ui with path aliases configured (`@/components`, `@/lib`, etc.). Components follow the "New York" style variant with Lucide icons.
+**Smart Contract Architecture**: Core `SocialMedia.sol` contract handles all social interactions with gas-optimized storage and event emissions.
 
-**Project Structure**:
-- `src/app/` - Next.js App Router pages and layouts
-- `src/components/ui/` - shadcn/ui components
-- `src/providers/` - React context providers (currently Web3 provider)
-- `src/lib/` - Utility functions and shared logic
+**Frontend Integration**: Uses generated TypeScript types from contract ABIs with custom Wagmi hooks for seamless blockchain interactions.
 
-**TypeScript Configuration**: Uses strict mode with path aliases. Import paths use `@/*` prefix for src directory.
+**Cross-Package Dependencies**: Frontend imports contract types from `@web3-social/contracts` workspace package.
 
-**Important Note**: The ReownProvider contains a hardcoded project ID that should be replaced with environment variables for production use.
+**Environment Setup**: Requires `.env` file with RPC URLs, private key, and API keys for deployment and verification.
