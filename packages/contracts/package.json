@@ -13,15 +13,16 @@
     "typechain": "typechain --target ethers-v6 --out-dir typechain 'artifacts/contracts/**/*.sol/*.json'"
   },
   "dependencies": {
-    "@openzeppelin/contracts": "^5.0.0"
+    "@openzeppelin/contracts": "^5.0.0",
+    "dotenv": "^16.5.0"
   },
   "devDependencies": {
     "@nomicfoundation/hardhat-toolbox": "^5.0.0",
     "@nomicfoundation/hardhat-verify": "^2.0.14",
     "@typechain/hardhat": "^9.1.0",
+    "@types/node": "^20",
     "hardhat": "^2.24.3",
     "typechain": "^8.3.2",
-    "@types/node": "^20",
     "typescript": "^5"
   }
 }
