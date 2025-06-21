@@ -5,12 +5,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Development Commands
 
 **Root Commands:**
+
 - `pnpm dev` - Start frontend development server
 - `pnpm build` - Build all packages (contracts, shared, frontend)
 - `pnpm test` - Run smart contract tests
 - `pnpm lint` - Run frontend linting
 
 **Package-specific Commands:**
+
 - `pnpm --filter @web3-social/contracts compile` - Compile smart contracts
 - `pnpm --filter @web3-social/contracts test` - Run contract tests
 - `pnpm --filter @web3-social/contracts deploy:testnet` - Deploy to Arbitrum Sepolia
@@ -18,13 +20,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Development Best Practices
 
-- When working on an issue we should create a new branch so we can work in isolation 
+- always use shadcn components where possible
 
 ## Architecture Overview
 
 This is a **monorepo** containing a fully on-chain web3 social application:
 
 ### Monorepo Structure
+
 ```
 packages/
 ├── contracts/     # Smart contracts (Hardhat + TypeScript)
@@ -33,6 +36,7 @@ packages/
 ```
 
 ### Technology Stack
+
 - **Smart Contracts**: Solidity with Hardhat, deployed on Arbitrum
 - **Frontend**: Next.js 15 with App Router, React 19, Tailwind CSS v4
 - **Web3 Integration**: Reown AppKit + Wagmi for wallet connectivity

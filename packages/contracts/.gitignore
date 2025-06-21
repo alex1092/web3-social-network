@@ -1,0 +1,31 @@
+# Hardhat files
+/cache
+/artifacts
+
+# TypeChain
+/typechain
+/typechain-types
+
+# Coverage reports
+coverage
+coverage.json
+
+# Hardhat network files
+deployments/localhost
+
+# Environment variables
+.env
+.env.local
+
+# Dependencies
+node_modules
+
+# Build outputs
+/dist
+/build
+
+# Logs
+*.log
+
+# OS generated files
+.DS_Store
