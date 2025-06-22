@@ -27,7 +27,8 @@ export function useGetMessages({
   const { 
     data: totalPosts, 
     isLoading: isLoadingTotal,
-    error: totalError 
+    error: totalError,
+    refetch: refetchTotal
   } = useReadContract({
     ...contract,
     functionName: 'totalPosts',
@@ -46,7 +47,7 @@ export function useGetMessages({
     isLoading: isLoadingPosts,
     isError,
     error,
-    refetch 
+    refetch: refetchPosts 
   } = useReadContract({
     ...contract,
     functionName: 'getPost',
@@ -60,6 +61,11 @@ export function useGetMessages({
   })
 
   const isLoading = isLoadingTotal || isLoadingPosts
+
+  const refetch = () => {
+    refetchTotal()
+    refetchPosts()
+  }
 
   return {
     posts,

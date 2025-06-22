@@ -34,7 +34,7 @@ export function MessageFeed({
     isLoading,
     isError,
     error,
-    refetch,
+    refetch: refetchMessages,
     totalPosts
   } = useGetMessages({
     enabled: true
@@ -66,42 +66,44 @@ export function MessageFeed({
   // Auto-refresh when new block is mined
   useEffect(() => {
     if (blockNumber) {
-      refetch()
+      refetchMessages()
     }
-  }, [blockNumber, refetch])
+  }, [blockNumber, refetchMessages])
 
-  const loadMorePosts = () => {
+  const loadMorePosts = useCallback(() => {
     if (!totalPosts || isLoadingMore || !hasMorePosts) return
     
     setIsLoadingMore(true)
     
-    // Simulate async loading
-    setTimeout(() => {
-      const currentCount = displayedPosts.length
-      const remainingPosts = Number(totalPosts) - currentCount
-      const postsToLoad = Math.min(10, remainingPosts)
+    const currentCount = displayedPosts.length
+    const remainingPosts = Number(totalPosts) - currentCount
+    const postsToLoad = Math.min(10, remainingPosts)
+    
+    if (postsToLoad > 0) {
+      const oldestCurrentId = Math.min(...displayedPosts.map(id => Number(id)))
+      const newPosts: bigint[] = []
       
-      if (postsToLoad > 0) {
-        const oldestCurrentId = Math.min(...displayedPosts.map(id => Number(id)))
-        const newPosts: bigint[] = []
-        
-        for (let i = oldestCurrentId - 1; i >= Math.max(1, oldestCurrentId - postsToLoad); i--) {
-          newPosts.push(BigInt(i))
-        }
-        
-        setDisplayedPosts(prev => [...prev, ...newPosts])
-        setHasMorePosts(oldestCurrentId - postsToLoad > 1)
-      } else {
-        setHasMorePosts(false)
+      for (let i = oldestCurrentId - 1; i >= Math.max(1, oldestCurrentId - postsToLoad); i--) {
+        newPosts.push(BigInt(i))
       }
       
-      setIsLoadingMore(false)
-    }, 500)
-  }
+      setDisplayedPosts(prev => [...prev, ...newPosts])
+      setHasMorePosts(oldestCurrentId - postsToLoad > 1)
+    } else {
+      setHasMorePosts(false)
+    }
+    
+    setIsLoadingMore(false)
+  }, [totalPosts, isLoadingMore, hasMorePosts, displayedPosts])
 
-  const handleRefresh = () => {
-    refetch()
-  }
+  const handleRefresh = useCallback(() => {
+    refetchMessages()
+    if (totalPosts && totalPosts > 0) {
+      const freshPosts = generatePostIds(Number(totalPosts), 10)
+      setDisplayedPosts(freshPosts)
+      setHasMorePosts(Number(totalPosts) > 10)
+    }
+  }, [refetchMessages, totalPosts, generatePostIds])
 
   if (isError) {
     return (

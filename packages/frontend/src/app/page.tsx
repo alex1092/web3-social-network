@@ -1,30 +1,36 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { PostCreator, MessageFeed, TippingModal, UserProfile } from '@/components/social'
-import { Separator } from '@/components/ui/separator'
-import { useAccount } from 'wagmi'
-import type { SocialMedia } from '@/lib/contracts/types'
+import { useState } from "react";
+import {
+  PostCreator,
+  MessageFeed,
+  TippingModal,
+  UserProfile,
+} from "@/components/social";
+import { Separator } from "@/components/ui/separator";
+import { useAccount } from "wagmi";
+import type { SocialMedia } from "@/lib/contracts/types";
 
 export default function Home() {
-  const { isConnected } = useAccount()
-  const [selectedPostForTip, setSelectedPostForTip] = useState<SocialMedia.PostStructOutput | null>(null)
-  const [isTipModalOpen, setIsTipModalOpen] = useState(false)
+  const { isConnected } = useAccount();
+  const [selectedPostForTip, setSelectedPostForTip] =
+    useState<SocialMedia.PostStructOutput | null>(null);
+  const [isTipModalOpen, setIsTipModalOpen] = useState(false);
 
   const handlePostCreated = (txHash: string) => {
     // Refresh feed when new post is created
-    console.log('Post created:', txHash)
-  }
+    console.log("Post created:", txHash);
+  };
 
   const handleReply = (postId: bigint) => {
     // Handle reply functionality
-    console.log('Reply to post:', postId)
-  }
+    console.log("Reply to post:", postId);
+  };
 
   const handleTip = (post: SocialMedia.PostStructOutput) => {
-    setSelectedPostForTip(post)
-    setIsTipModalOpen(true)
-  }
+    setSelectedPostForTip(post);
+    setIsTipModalOpen(true);
+  };
 
   // const handleShare = (post: Post) => {
   //   // Handle share functionality
@@ -50,17 +56,17 @@ export default function Home() {
           <div className="lg:col-span-1">
             <div className="sticky top-8 space-y-6">
               {isConnected && (
-                <UserProfile 
-                  showEditProfile={true}
-                  className="w-full"
-                />
+                <UserProfile showEditProfile={true} className="w-full" />
               )}
-              
+
               {!isConnected && (
                 <div className="p-6 text-center border rounded-lg">
-                  <h3 className="text-lg font-semibold mb-2">Welcome to Web3 Social</h3>
+                  <h3 className="text-lg font-semibold mb-2">
+                    Welcome to Web3 Social
+                  </h3>
                   <p className="text-sm text-muted-foreground mb-4">
-                    Connect your wallet to start posting and interacting with the community.
+                    Connect your wallet to start posting and interacting with
+                    the community.
                   </p>
                   <appkit-button />
                 </div>
@@ -73,7 +79,7 @@ export default function Home() {
             {/* Post Creator */}
             {isConnected && (
               <>
-                <PostCreator 
+                <PostCreator
                   onPostCreated={handlePostCreated}
                   className="w-full"
                 />
@@ -98,23 +104,6 @@ export default function Home() {
         isOpen={isTipModalOpen}
         onOpenChange={setIsTipModalOpen}
       />
-
-      {/* Footer */}
-      <footer className="border-t mt-16">
-        <div className="container mx-auto px-4 py-8">
-          <div className="flex flex-col md:flex-row items-center justify-between space-y-4 md:space-y-0">
-            <div className="text-sm text-muted-foreground">
-              © 2024 Web3 Social. Built on Arbitrum.
-            </div>
-            <div className="flex items-center space-x-6 text-sm">
-              <a href="#" className="hover:underline">About</a>
-              <a href="#" className="hover:underline">Privacy</a>
-              <a href="#" className="hover:underline">Terms</a>
-              <a href="https://github.com" className="hover:underline">GitHub</a>
-            </div>
-          </div>
-        </div>
-      </footer>
     </div>
-  )
+  );
 }
