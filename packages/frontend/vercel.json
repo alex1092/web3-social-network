@@ -1,5 +1,5 @@
 {
-  "installCommand": "cd ../.. && pnpm install --frozen-lockfile",
-  "buildCommand": "cd ../.. && pnpm run build:frontend",
+  "installCommand": "cd $VERCEL_PROJECT_ROOT && pnpm install --frozen-lockfile",
+  "buildCommand": "cd $VERCEL_PROJECT_ROOT && pnpm run build:frontend",
   "framework": null
 }
