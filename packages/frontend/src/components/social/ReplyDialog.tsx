@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, memo, useMemo, useCallback } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
@@ -12,6 +12,7 @@ import { useAccount } from 'wagmi'
 import { toast } from 'sonner'
 import { MessageCircle, Send, Clock } from 'lucide-react'
 import type { SocialMedia } from '@/lib/contracts/types'
+import { formatAddress, formatTimestamp } from '@/lib/utils'
 
 interface ReplyDialogProps {
   post: SocialMedia.PostStructOutput | null
@@ -20,7 +21,7 @@ interface ReplyDialogProps {
   onReplyCreated?: (txHash: string) => void
 }
 
-export function ReplyDialog({ 
+const ReplyDialog = memo(function ReplyDialog({ 
   post, 
   isOpen, 
   onOpenChange, 
@@ -66,7 +67,18 @@ export function ReplyDialog({
     }
   }, [isConfirmed, reset])
 
-  const handleSubmit = (e: React.FormEvent) => {
+
+  const formattedAddress = useMemo(() => 
+    post ? formatAddress(post.author) : '', 
+    [post]
+  )
+  
+  const formattedTimestamp = useMemo(() => 
+    post ? formatTimestamp(Number(post.timestamp)) : '', 
+    [post]
+  )
+  
+  const handleSubmitCallback = useCallback((e: React.FormEvent) => {
     e.preventDefault()
     
     if (!isConnected) {
@@ -85,22 +97,7 @@ export function ReplyDialog({
     }
 
     writeReply()
-  }
-
-  const formatAddress = (address: string) => {
-    return `${address.slice(0, 6)}...${address.slice(-4)}`
-  }
-
-  const formatTimestamp = (timestamp: bigint) => {
-    const date = new Date(Number(timestamp) * 1000)
-    const now = new Date()
-    const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000)
-    
-    if (diffInSeconds < 60) return `${diffInSeconds}s`
-    if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m`
-    if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h`
-    return `${Math.floor(diffInSeconds / 86400)}d`
-  }
+  }, [isConnected, content, maxChars, writeReply])
 
   if (!post) return null
 
@@ -121,16 +118,16 @@ export function ReplyDialog({
               <div className="flex items-center space-x-2">
                 <Avatar className="w-8 h-8">
                   <AvatarFallback>
-                    {formatAddress(post.author).slice(0, 2).toUpperCase()}
+                    {formattedAddress.slice(0, 2).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
                 <div>
                   <p className="text-sm font-medium">
-                    {formatAddress(post.author)}
+                    {formattedAddress}
                   </p>
                   <div className="flex items-center space-x-2 text-xs text-muted-foreground">
                     <Clock className="w-3 h-3" />
-                    <span>{formatTimestamp(post.timestamp)}</span>
+                    <span>{formattedTimestamp}</span>
                   </div>
                 </div>
               </div>
@@ -146,7 +143,7 @@ export function ReplyDialog({
           <Separator />
 
           {/* Reply Form */}
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmitCallback} className="space-y-4">
             <div className="space-y-2">
               <Textarea
                 placeholder="Write your reply..."
@@ -197,4 +194,6 @@ export function ReplyDialog({
       </DialogContent>
     </Dialog>
   )
-}
+})
+
+export { ReplyDialog }

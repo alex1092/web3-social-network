@@ -28,15 +28,14 @@ contract SocialMedia is Ownable, ReentrancyGuard {
 
     mapping(uint256 => Post) public posts;
     mapping(address => User) public users;
-    mapping(address => string) public usernames;
     mapping(string => address) public usernameToAddress;
     mapping(uint256 => mapping(address => bool)) public postLikes;
     mapping(address => mapping(address => bool)) public following;
     mapping(uint256 => uint256[]) public postReplies;
 
     uint256 public nextPostId = 1;
-    uint256 public totalUsers = 0;
-    uint256 public totalPosts = 0;
+    uint256 public totalUsers;
+    uint256 public totalPosts;
 
     event UserRegistered(address indexed user, string username);
     event PostCreated(uint256 indexed postId, address indexed author, string content, uint256 timestamp);
@@ -68,7 +67,6 @@ contract SocialMedia is Ownable, ReentrancyGuard {
             exists: true
         });
 
-        usernames[msg.sender] = _username;
         usernameToAddress[_username] = msg.sender;
         totalUsers++;
 
@@ -97,7 +95,7 @@ contract SocialMedia is Ownable, ReentrancyGuard {
     }
 
     function createReply(uint256 _parentId, string memory _content) external onlyRegistered {
-        require(posts[_parentId].id != 0, "Parent post does not exist");
+        require(posts[_parentId].author != address(0), "Parent post does not exist");
         require(bytes(_content).length > 0 && bytes(_content).length <= 280, "Invalid content length");
 
         posts[nextPostId] = Post({
@@ -122,7 +120,8 @@ contract SocialMedia is Ownable, ReentrancyGuard {
     }
 
     function likePost(uint256 _postId) external onlyRegistered {
-        require(posts[_postId].id != 0, "Post does not exist");
+        require(posts[_postId].author != address(0), "Post does not exist");
+
         require(!postLikes[_postId][msg.sender], "Already liked");
 
         postLikes[_postId][msg.sender] = true;
@@ -132,7 +131,8 @@ contract SocialMedia is Ownable, ReentrancyGuard {
     }
 
     function unlikePost(uint256 _postId) external onlyRegistered {
-        require(posts[_postId].id != 0, "Post does not exist");
+        require(posts[_postId].author != address(0), "Post does not exist");
+
         require(postLikes[_postId][msg.sender], "Not liked yet");
 
         postLikes[_postId][msg.sender] = false;
@@ -165,7 +165,8 @@ contract SocialMedia is Ownable, ReentrancyGuard {
     }
 
     function getPost(uint256 _postId) external view returns (Post memory) {
-        require(posts[_postId].id != 0, "Post does not exist");
+        require(posts[_postId].author != address(0), "Post does not exist");
+
         return posts[_postId];
     }
 
@@ -181,7 +182,8 @@ contract SocialMedia is Ownable, ReentrancyGuard {
     }
 
     function getPostReplies(uint256 _postId) external view returns (uint256[] memory) {
-        require(posts[_postId].id != 0, "Post does not exist");
+        require(posts[_postId].author != address(0), "Post does not exist");
+
         return postReplies[_postId];
     }
 

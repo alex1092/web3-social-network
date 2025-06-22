@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback, memo } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -17,11 +17,10 @@ interface MessageFeedProps {
   maxPosts?: number
 }
 
-export function MessageFeed({ 
+const MessageFeed = memo(function MessageFeed({ 
   onReply, 
   onTip, 
-  className,
-  // maxPosts = 50
+  className
 }: MessageFeedProps) {
   const [displayedPosts, setDisplayedPosts] = useState<bigint[]>([])
   const [isLoadingMore, setIsLoadingMore] = useState(false)
@@ -244,7 +243,7 @@ export function MessageFeed({
       </div>
     </div>
   )
-}
+})
 
 // Individual Post Renderer Component
 interface PostRendererProps {
@@ -253,7 +252,7 @@ interface PostRendererProps {
   onTip?: (post: SocialMedia.PostStructOutput) => void
 }
 
-function PostRenderer({ postId, onReply, onTip }: PostRendererProps) {
+const PostRenderer = memo(function PostRenderer({ postId, onReply, onTip }: PostRendererProps) {
   const {
     post,
     isLoading,
@@ -308,4 +307,6 @@ function PostRenderer({ postId, onReply, onTip }: PostRendererProps) {
       onPostUpdate={refetch}
     />
   )
-}
+})
+
+export { MessageFeed }

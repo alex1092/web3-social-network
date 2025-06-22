@@ -22,7 +22,7 @@ export function useGetMessages({
 }: UseGetMessagesProps = {}): UseGetMessagesReturn {
   const contract = getSocialMediaContract()
 
-  const { data: blockNumber } = useBlockNumber({ watch: true })
+  useBlockNumber({ watch: true })
 
   const { 
     data: totalPosts, 
@@ -96,7 +96,7 @@ export function useGetSinglePost({
 }: UseGetSinglePostProps): UseGetSinglePostReturn {
   const contract = getSocialMediaContract()
 
-  const { data: blockNumber } = useBlockNumber({ watch: true })
+  useBlockNumber({ watch: true })
 
   const { 
     data: post, 

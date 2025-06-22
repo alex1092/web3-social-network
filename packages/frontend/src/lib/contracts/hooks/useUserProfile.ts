@@ -42,7 +42,7 @@ export function useUserProfile({
   const [actionError, setActionError] = useState<string | null>(null)
   
   const contract = getSocialMediaContract()
-  const { data: blockNumber } = useBlockNumber({ watch: true })
+  useBlockNumber({ watch: true })
 
   const userAddress = address || connectedAddress
   const shouldFetchByAddress = !!userAddress && !username
@@ -83,7 +83,7 @@ export function useUserProfile({
   const isError = isErrorByAddress || isErrorByUsername
   const error = errorByAddress || errorByUsername
 
-  const { data: simulateRegisterData, error: simulateRegisterError } = useSimulateContract({
+  useSimulateContract({
     ...contract,
     functionName: 'registerUser',
     args: ['', ''],
@@ -92,7 +92,7 @@ export function useUserProfile({
     },
   })
 
-  const { data: simulateFollowData, error: simulateFollowError } = useSimulateContract({
+  useSimulateContract({
     ...contract,
     functionName: 'followUser',
     args: ['0x0000000000000000000000000000000000000000' as Address],
@@ -101,7 +101,7 @@ export function useUserProfile({
     },
   })
 
-  const { data: simulateUnfollowData, error: simulateUnfollowError } = useSimulateContract({
+  useSimulateContract({
     ...contract,
     functionName: 'unfollowUser',
     args: ['0x0000000000000000000000000000000000000000' as Address],
@@ -117,7 +117,7 @@ export function useUserProfile({
     reset: resetWrite,
   } = useWriteContract({
     mutation: {
-      onSuccess: (hash) => {
+      onSuccess: () => {
         setActionError(null)
         refetch()
       },

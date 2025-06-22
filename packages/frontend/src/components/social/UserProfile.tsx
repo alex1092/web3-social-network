@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, memo, useMemo } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -16,6 +16,7 @@ import { useAccount } from 'wagmi'
 import { toast } from 'sonner'
 import { User, Users, MessageSquare, UserPlus, UserMinus, Edit, CheckCircle, AlertCircle } from 'lucide-react'
 import type { Address } from 'viem'
+import { formatAddress } from '@/lib/utils'
 
 interface UserProfileProps {
   address?: Address
@@ -24,7 +25,7 @@ interface UserProfileProps {
   className?: string
 }
 
-export function UserProfile({ 
+const UserProfile = memo(function UserProfile({ 
   address, 
   username, 
   showEditProfile = false,
@@ -56,9 +57,10 @@ export function UserProfile({
   const isOwnProfile = connectedAddress && user && connectedAddress.toLowerCase() === user.userAddress.toLowerCase()
   const isUserFollowing = user && connectedAddress ? isFollowing(user.userAddress as Address) : false
 
-  const formatAddress = (addr: string) => {
-    return `${addr.slice(0, 6)}...${addr.slice(-4)}`
-  }
+  const formattedUserAddress = useMemo(() => 
+    user ? formatAddress(user.userAddress) : '', 
+    [user]
+  )
 
   const handleRegister = () => {
     if (!newUsername.trim()) {
@@ -253,7 +255,7 @@ export function UserProfile({
                 )}
               </div>
               <p className="text-sm text-muted-foreground">
-                {formatAddress(user.userAddress)}
+                {formattedUserAddress}
               </p>
             </div>
           </div>
@@ -342,4 +344,6 @@ export function UserProfile({
       </CardContent>
     </Card>
   )
-}
+})
+
+export { UserProfile }

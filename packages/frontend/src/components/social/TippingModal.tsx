@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, memo, useMemo, useCallback } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -12,6 +12,7 @@ import { parseEther } from 'viem'
 import { toast } from 'sonner'
 import { DollarSign, Send, Wallet } from 'lucide-react'
 import type { SocialMedia } from '@/lib/contracts/types'
+import { formatAddress } from '@/lib/utils'
 
 interface TippingModalProps {
   post: SocialMedia.PostStructOutput | null
@@ -26,7 +27,7 @@ const SUGGESTED_AMOUNTS = [
   { label: '0.05 ETH', value: '0.05' },
 ]
 
-export function TippingModal({ post, isOpen, onOpenChange }: TippingModalProps) {
+const TippingModal = memo(function TippingModal({ post, isOpen, onOpenChange }: TippingModalProps) {
   const [amount, setAmount] = useState('')
   const [customAmount, setCustomAmount] = useState('')
   const { isConnected } = useAccount()
@@ -73,7 +74,24 @@ export function TippingModal({ post, isOpen, onOpenChange }: TippingModalProps) 
     setAmount(value)
   }
 
-  const handleSendTip = async () => {
+
+  const formattedAddress = useMemo(() => 
+    post ? formatAddress(post.author) : '', 
+    [post]
+  )
+  
+  const buttonText = useMemo(() => {
+    if (isPending) return 'Sending Tip...'
+    if (isConfirming) return 'Confirming...'
+    if (isConfirmed) return 'Tip Sent!'
+    return 'Send Tip'
+  }, [isPending, isConfirming, isConfirmed])
+  
+  const isButtonDisabled = useMemo(() => {
+    return !amount || parseFloat(amount) <= 0 || isPending || isConfirming || !isConnected
+  }, [amount, isPending, isConfirming, isConnected])
+  
+  const handleSendTipCallback = useCallback(async () => {
     if (!post || !isConnected) {
       toast.error('Please connect your wallet')
       return
@@ -92,25 +110,10 @@ export function TippingModal({ post, isOpen, onOpenChange }: TippingModalProps) 
         value,
       })
     } catch {
-      // error
       toast.error('Invalid amount entered')
     }
-  }
+  }, [post, isConnected, amount, sendTransaction])
 
-  const formatAddress = (address: string) => {
-    return `${address.slice(0, 6)}...${address.slice(-4)}`
-  }
-
-  const getButtonText = () => {
-    if (isPending) return 'Sending Tip...'
-    if (isConfirming) return 'Confirming...'
-    if (isConfirmed) return 'Tip Sent!'
-    return 'Send Tip'
-  }
-
-  const isButtonDisabled = () => {
-    return !isConnected || !amount || parseFloat(amount) <= 0 || isPending || isConfirming
-  }
 
   if (!post) return null
 
@@ -131,13 +134,13 @@ export function TippingModal({ post, isOpen, onOpenChange }: TippingModalProps) 
               <div className="flex items-center space-x-3">
                 <Avatar className="w-10 h-10">
                   <AvatarFallback>
-                    {formatAddress(post.author).slice(0, 2).toUpperCase()}
+                    {formattedAddress.slice(0, 2).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
                 <div>
                   <p className="font-medium">Tipping Author</p>
                   <p className="text-sm text-muted-foreground">
-                    {formatAddress(post.author)}
+                    {formattedAddress}
                   </p>
                 </div>
               </div>
@@ -229,12 +232,12 @@ export function TippingModal({ post, isOpen, onOpenChange }: TippingModalProps) 
               Cancel
             </Button>
             <Button
-              onClick={handleSendTip}
-              disabled={isButtonDisabled()}
+              onClick={handleSendTipCallback}
+              disabled={isButtonDisabled}
               className="flex-1"
             >
               <Send className="w-4 h-4 mr-2" />
-              {getButtonText()}
+              {buttonText}
             </Button>
           </div>
 
@@ -260,4 +263,6 @@ export function TippingModal({ post, isOpen, onOpenChange }: TippingModalProps) 
       </DialogContent>
     </Dialog>
   )
-}
+})
+
+export { TippingModal }

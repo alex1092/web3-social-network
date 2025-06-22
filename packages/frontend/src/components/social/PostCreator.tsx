@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, memo } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
@@ -14,7 +14,7 @@ interface PostCreatorProps {
   className?: string
 }
 
-export function PostCreator({ onPostCreated, className }: PostCreatorProps) {
+const PostCreator = memo(function PostCreator({ onPostCreated, className }: PostCreatorProps) {
   const [content, setContent] = useState('')
   const { isConnected } = useAccount()
   
@@ -152,4 +152,6 @@ export function PostCreator({ onPostCreated, className }: PostCreatorProps) {
       </CardContent>
     </Card>
   )
-}
+})
+
+export { PostCreator }

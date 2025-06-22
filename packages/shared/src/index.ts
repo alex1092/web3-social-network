@@ -19,11 +19,18 @@ export const SUPPORTED_NETWORKS: Record<number, NetworkConfig> = {
     name: "Arbitrum Sepolia",
     rpcUrl: "https://sepolia-rollup.arbitrum.io/rpc",
     blockExplorer: "https://sepolia.arbiscan.io"
+  },
+  84532: {
+    chainId: 84532,
+    name: "Base Sepolia",
+    rpcUrl: "https://sepolia.base.org",
+    blockExplorer: "https://sepolia.basescan.org"
   }
 };
 
-// Contract addresses will be populated after deployment
+// Contract addresses - updated with optimized deployment
 export const CONTRACT_ADDRESSES: Record<number, { socialMedia: string }> = {
   42161: { socialMedia: "" }, // Arbitrum One
-  421614: { socialMedia: "" } // Arbitrum Sepolia
+  421614: { socialMedia: "" }, // Arbitrum Sepolia
+  84532: { socialMedia: "0xC87D021BF2F350Bb2EcB6c47c9F290EC73ce118a" } // Base Sepolia - Optimized Contract
 };

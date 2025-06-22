@@ -1,23 +1,22 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { memo, useMemo } from 'react'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Separator } from '@/components/ui/separator'
 import { useLikeMessage } from '@/lib/contracts'
 import { useAccount } from 'wagmi'
 import { toast } from 'sonner'
-import { Heart, MessageCircle, Share, DollarSign, Clock } from 'lucide-react'
+import { Heart, MessageCircle, DollarSign, Clock } from 'lucide-react'
 import { RepliesSection } from './RepliesSection'
 import type { SocialMedia } from '@/lib/contracts/types'
+import { formatAddress, formatTimestamp } from '@/lib/utils'
 
 interface MessageCardProps {
   post: SocialMedia.PostStructOutput
   onReply?: (post: SocialMedia.PostStructOutput) => void
-  // onShare?: (post: Post) => void
   onTip?: (post: SocialMedia.PostStructOutput) => void
   onPostUpdate?: () => void
   showReplies?: boolean
@@ -25,10 +24,9 @@ interface MessageCardProps {
   className?: string
 }
 
-export function MessageCard({ 
+const MessageCard = memo(function MessageCard({ 
   post, 
   onReply, 
-  // onShare, 
   onTip, 
   onPostUpdate,
   showReplies = true,
@@ -36,7 +34,6 @@ export function MessageCard({
   className 
 }: MessageCardProps) {
   const { isConnected } = useAccount()
-  const [isShareDialogOpen, setIsShareDialogOpen] = useState(false)
   const {
     likePost,
     unlikePost,
@@ -80,16 +77,6 @@ export function MessageCard({
     onReply?.(post)
   }
 
-  const handleShare = () => {
-    setIsShareDialogOpen(true)
-  }
-
-  const handleCopyLink = () => {
-    const url = `${window.location.origin}/post/${post.id}`
-    navigator.clipboard.writeText(url)
-    toast.success('Link copied to clipboard!')
-    setIsShareDialogOpen(false)
-  }
 
   const handleTip = () => {
     if (!isConnected) {
@@ -99,20 +86,9 @@ export function MessageCard({
     onTip?.(post)
   }
 
-  const formatAddress = (address: string) => {
-    return `${address.slice(0, 6)}...${address.slice(-4)}`
-  }
-
-  const formatTimestamp = (timestamp: bigint) => {
-    const date = new Date(Number(timestamp) * 1000)
-    const now = new Date()
-    const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000)
-    
-    if (diffInSeconds < 60) return `${diffInSeconds}s`
-    if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m`
-    if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h`
-    return `${Math.floor(diffInSeconds / 86400)}d`
-  }
+  const formattedAddress = useMemo(() => formatAddress(post.author), [post.author])
+  const formattedTimestamp = useMemo(() => formatTimestamp(Number(post.timestamp)), [post.timestamp])
+  const postIdString = useMemo(() => post.id.toString(), [post.id])
 
   return (
     <Card className={className}>
@@ -121,16 +97,16 @@ export function MessageCard({
           <div className="flex items-center space-x-2">
             <Avatar className="w-8 h-8">
               <AvatarFallback>
-                {formatAddress(post.author).slice(0, 2).toUpperCase()}
+                {formattedAddress.slice(0, 2).toUpperCase()}
               </AvatarFallback>
             </Avatar>
             <div>
               <p className="text-sm font-medium">
-                {formatAddress(post.author)}
+                {formattedAddress}
               </p>
               <div className="flex items-center space-x-2 text-xs text-muted-foreground">
                 <Clock className="w-3 h-3" />
-                <span>{formatTimestamp(post.timestamp)}</span>
+                <span>{formattedTimestamp}</span>
                 {post.isReply && (
                   <Badge variant="secondary" className="text-xs py-0">
                     Reply
@@ -140,7 +116,7 @@ export function MessageCard({
             </div>
           </div>
           <Badge variant="outline" className="text-xs">
-            #{post.id.toString()}
+            #{postIdString}
           </Badge>
         </div>
       </CardHeader>
@@ -178,29 +154,6 @@ export function MessageCard({
                 </Button>
               )}
               
-              <Dialog open={isShareDialogOpen} onOpenChange={setIsShareDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={handleShare}
-                    className="flex items-center space-x-1 text-muted-foreground"
-                  >
-                    <Share className="w-4 h-4" />
-                    <span className="text-xs">Share</span>
-                  </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Share Post</DialogTitle>
-                  </DialogHeader>
-                  <div className="space-y-4">
-                    <Button onClick={handleCopyLink} className="w-full">
-                      Copy Link
-                    </Button>
-                  </div>
-                </DialogContent>
-              </Dialog>
             </div>
             
             <Button
@@ -232,4 +185,6 @@ export function MessageCard({
       </CardContent>
     </Card>
   )
-}
+})
+
+export { MessageCard }

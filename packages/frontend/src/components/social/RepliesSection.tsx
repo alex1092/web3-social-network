@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, memo } from 'react'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useGetPostReplies, useGetSinglePost } from '@/lib/contracts'
@@ -14,7 +14,7 @@ interface RepliesSectionProps {
   onTip?: (post: SocialMedia.PostStructOutput) => void
 }
 
-export function RepliesSection({ 
+const RepliesSection = memo(function RepliesSection({ 
   parentPost, 
   onReply, 
   onTip 
@@ -98,7 +98,7 @@ export function RepliesSection({
       )}
     </div>
   )
-}
+})
 
 interface ReplyRendererProps {
   replyId: bigint
@@ -106,7 +106,7 @@ interface ReplyRendererProps {
   onTip?: (post: SocialMedia.PostStructOutput) => void
 }
 
-function ReplyRenderer({ replyId, onReply, onTip }: ReplyRendererProps) {
+const ReplyRenderer = memo(function ReplyRenderer({ replyId, onReply, onTip }: ReplyRendererProps) {
   const {
     post,
     isLoading,
@@ -156,4 +156,6 @@ function ReplyRenderer({ replyId, onReply, onTip }: ReplyRendererProps) {
       className="border-none shadow-none bg-muted/30"
     />
   )
-}
+})
+
+export { RepliesSection }
