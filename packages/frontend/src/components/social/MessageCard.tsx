@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useMemo, useEffect } from 'react'
+import React, { useState } from 'react'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -18,6 +18,7 @@ interface MessageCardProps {
   onReply?: (postId: bigint) => void
   // onShare?: (post: Post) => void
   onTip?: (post: SocialMedia.PostStructOutput) => void
+  onPostUpdate?: () => void
   showReplies?: boolean
   className?: string
 }
@@ -27,44 +28,33 @@ export function MessageCard({
   onReply, 
   // onShare, 
   onTip, 
+  onPostUpdate,
   showReplies = true,
   className 
 }: MessageCardProps) {
   const { isConnected } = useAccount()
   const [isShareDialogOpen, setIsShareDialogOpen] = useState(false)
-  const [optimisticLikeChange, setOptimisticLikeChange] = useState<number>(0)
-  
   const {
     likePost,
     unlikePost,
-    isPending: isLikePending,
+    isLoading: isLikeLoading,
     isLiked,
-    error: likeError,
-    isConfirmed
+    error: likeError
   } = useLikeMessage({
     postId: post.id,
     onSuccess: (hash) => {
-      toast.success(isLiked ? 'Post liked!' : 'Post unliked!', {
-        description: `Transaction hash: ${hash.slice(0, 10)}...`
+      toast.success('Transaction successful!', {
+        description: `Hash: ${hash.slice(0, 10)}...`
       })
     },
     onError: (error) => {
-      setOptimisticLikeChange(0)
       toast.error('Failed to like post', {
         description: error
       })
-    }
+    },
+    onPostUpdate
   })
 
-  useEffect(() => {
-    if (isConfirmed) {
-      setOptimisticLikeChange(0)
-    }
-  }, [isConfirmed])
-
-  const displayedLikes = useMemo(() => {
-    return Number(post.likes) + optimisticLikeChange
-  }, [post.likes, optimisticLikeChange])
 
   const handleLike = () => {
     if (!isConnected) {
@@ -73,10 +63,8 @@ export function MessageCard({
     }
     
     if (isLiked) {
-      setOptimisticLikeChange(-1)
       unlikePost()
     } else {
-      setOptimisticLikeChange(1)
       likePost()
     }
   }
@@ -168,11 +156,11 @@ export function MessageCard({
                 variant="ghost"
                 size="sm"
                 onClick={handleLike}
-                disabled={isLikePending}
-                className={`flex items-center space-x-1 ${isLiked ? 'text-red-500' : 'text-muted-foreground'}`}
+                disabled={isLikeLoading}
+                className={`flex items-center space-x-1 ${isLiked ? 'text-red-500' : 'text-muted-foreground'} ${isLikeLoading ? 'opacity-50' : ''}`}
               >
-                <Heart className={`w-4 h-4 ${isLiked ? 'fill-current' : ''}`} />
-                <span className="text-xs">{displayedLikes.toString()}</span>
+                <Heart className={`w-4 h-4 ${isLiked ? 'fill-current' : ''} ${isLikeLoading ? 'animate-pulse' : ''}`} />
+                <span className="text-xs">{post.likes.toString()}</span>
               </Button>
               
               {showReplies && (

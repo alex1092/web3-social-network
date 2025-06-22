@@ -257,7 +257,8 @@ function PostRenderer({ postId, onReply, onTip }: PostRendererProps) {
   const {
     post,
     isLoading,
-    isError
+    isError,
+    refetch
     // error
   } = useGetSinglePost({
     postId,
@@ -304,6 +305,7 @@ function PostRenderer({ postId, onReply, onTip }: PostRendererProps) {
       post={post}
       onReply={onReply}
       onTip={onTip}
+      onPostUpdate={refetch}
     />
   )
 }

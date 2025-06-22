@@ -5,172 +5,161 @@ import {
   useAccount,
   useReadContract
 } from 'wagmi'
-import { useState, useCallback } from 'react'
+import { useCallback, useEffect } from 'react'
 import { getSocialMediaContract, handleContractError } from '../utils'
 
 export interface UseLikeMessageProps {
   postId: bigint
   onSuccess?: (txHash: string) => void
   onError?: (error: string) => void
+  onPostUpdate?: () => void // Callback to refetch post data
 }
 
 export interface UseLikeMessageReturn {
   likePost: () => void
   unlikePost: () => void
-  isPending: boolean
-  isConfirming: boolean
-  isConfirmed: boolean
-  error: string | null
-  txHash: string | undefined
-  isLiked: boolean
   isLoading: boolean
+  error: string | null
+  isLiked: boolean
   reset: () => void
 }
 
 export function useLikeMessage({ 
   postId, 
   onSuccess, 
-  onError 
+  onError,
+  onPostUpdate
 }: UseLikeMessageProps): UseLikeMessageReturn {
   const { address } = useAccount()
-  const [error, setError] = useState<string | null>(null)
-  const [optimisticLiked, setOptimisticLiked] = useState<boolean | null>(null)
-  
   const contract = getSocialMediaContract()
 
+  // Get current like status from blockchain
   const { 
-    data: actualIsLiked = false, 
-    isLoading,
+    data: isLiked = false, 
+    isLoading: isLoadingLikeStatus,
     refetch: refetchLikeStatus 
   } = useReadContract({
     ...contract,
     functionName: 'hasLikedPost',
-    args: [postId, address!],
+    args: [postId, address as `0x${string}`],
     query: {
       enabled: !!address && !!postId,
     },
   })
 
-  const isLiked = optimisticLiked !== null ? optimisticLiked : actualIsLiked
-
+  // Simulate like transaction
   const { data: simulateLikeData, error: simulateLikeError } = useSimulateContract({
     ...contract,
     functionName: 'likePost',
     args: [postId],
     query: {
-      enabled: !!postId && !!address && !actualIsLiked,
+      enabled: !!postId && !!address && !isLiked,
     },
   })
 
+  // Simulate unlike transaction
   const { data: simulateUnlikeData, error: simulateUnlikeError } = useSimulateContract({
     ...contract,
     functionName: 'unlikePost',
     args: [postId],
     query: {
-      enabled: !!postId && !!address && actualIsLiked,
+      enabled: !!postId && !!address && isLiked,
     },
   })
 
+  // Write contract
   const {
     writeContract,
     data: txHash,
-    isPending,
+    isPending: isWritePending,
+    error: writeError,
     reset: resetWrite,
   } = useWriteContract({
     mutation: {
       onSuccess: (hash) => {
-        setError(null)
         onSuccess?.(hash)
       },
       onError: (err) => {
-        setOptimisticLiked(null)
-        const errorMessage = handleContractError(err, optimisticLiked ? 'likePost' : 'unlikePost')
-        setError(errorMessage)
+        const errorMessage = handleContractError(err, 'mutation')
         onError?.(errorMessage)
       },
     },
   })
 
+  // Wait for transaction confirmation
   const { isLoading: isConfirming, isSuccess: isConfirmed } = useWaitForTransactionReceipt({
     hash: txHash,
-    query: {
-      onSuccess: () => {
-        setOptimisticLiked(null)
-        refetchLikeStatus()
-      },
-    },
   })
+
+  // Refetch like status and post data when transaction confirms
+  useEffect(() => {
+    if (isConfirmed) {
+      refetchLikeStatus()
+      onPostUpdate?.() // Trigger post data refetch in parent
+    }
+  }, [isConfirmed, refetchLikeStatus, onPostUpdate])
+
+  // Combined loading state
+  const isLoading = isLoadingLikeStatus || isWritePending || isConfirming
 
   const likePost = useCallback(() => {
     if (!address) {
-      setError('Please connect your wallet')
+      onError?.('Please connect your wallet')
       return
     }
 
-    if (actualIsLiked) {
-      setError('Post is already liked')
+    if (isLiked) {
+      onError?.('Post is already liked')
       return
     }
 
     if (simulateLikeError) {
-      const errorMessage = handleContractError(simulateLikeError, 'likePost')
-      setError(errorMessage)
+      onError?.(handleContractError(simulateLikeError, 'likePost'))
       return
     }
 
     if (!simulateLikeData) {
-      setError('Unable to simulate like transaction')
+      onError?.('Unable to simulate like transaction')
       return
     }
 
-    setOptimisticLiked(true)
-    setError(null)
     writeContract(simulateLikeData.request)
-  }, [address, actualIsLiked, simulateLikeError, simulateLikeData, writeContract])
+  }, [address, isLiked, simulateLikeError, simulateLikeData, writeContract, onError])
 
   const unlikePost = useCallback(() => {
     if (!address) {
-      setError('Please connect your wallet')
+      onError?.('Please connect your wallet')
       return
     }
 
-    if (!actualIsLiked) {
-      setError('Post is not liked')
+    if (!isLiked) {
+      onError?.('Post is not liked')
       return
     }
 
     if (simulateUnlikeError) {
-      const errorMessage = handleContractError(simulateUnlikeError, 'unlikePost')
-      setError(errorMessage)
+      onError?.(handleContractError(simulateUnlikeError, 'unlikePost'))
       return
     }
 
     if (!simulateUnlikeData) {
-      setError('Unable to simulate unlike transaction')
+      onError?.('Unable to simulate unlike transaction')
       return
     }
 
-    setOptimisticLiked(false)
-    setError(null)
     writeContract(simulateUnlikeData.request)
-  }, [address, actualIsLiked, simulateUnlikeError, simulateUnlikeData, writeContract])
+  }, [address, isLiked, simulateUnlikeError, simulateUnlikeData, writeContract, onError])
 
-  const reset = () => {
-    setError(null)
-    setOptimisticLiked(null)
+  const reset = useCallback(() => {
     resetWrite()
-  }
+  }, [resetWrite])
 
   return {
     likePost,
     unlikePost,
-    isPending,
-    isConfirming,
-    isConfirmed,
-    error,
-    txHash,
-    isLiked,
     isLoading,
+    error: writeError ? handleContractError(writeError, 'mutation') : null,
+    isLiked,
     reset,
   }
 }
