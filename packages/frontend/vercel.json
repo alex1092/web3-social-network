@@ -1,4 +1,5 @@
 {
-  "installCommand": "cd ../.. && pnpm install --frozen-lockfile && cd packages/frontend",
-  "buildCommand": "cd ../.. && pnpm run build:frontend"
+  "installCommand": "cd ../.. && pnpm install --frozen-lockfile",
+  "buildCommand": "cd ../.. && pnpm run build:frontend",
+  "framework": null
 }
