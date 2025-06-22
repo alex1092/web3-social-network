@@ -11,15 +11,17 @@ import { useLikeMessage } from '@/lib/contracts'
 import { useAccount } from 'wagmi'
 import { toast } from 'sonner'
 import { Heart, MessageCircle, Share, DollarSign, Clock } from 'lucide-react'
+import { RepliesSection } from './RepliesSection'
 import type { SocialMedia } from '@/lib/contracts/types'
 
 interface MessageCardProps {
   post: SocialMedia.PostStructOutput
-  onReply?: (postId: bigint) => void
+  onReply?: (post: SocialMedia.PostStructOutput) => void
   // onShare?: (post: Post) => void
   onTip?: (post: SocialMedia.PostStructOutput) => void
   onPostUpdate?: () => void
   showReplies?: boolean
+  showRepliesSection?: boolean
   className?: string
 }
 
@@ -30,6 +32,7 @@ export function MessageCard({
   onTip, 
   onPostUpdate,
   showReplies = true,
+  showRepliesSection = true,
   className 
 }: MessageCardProps) {
   const { isConnected } = useAccount()
@@ -74,7 +77,7 @@ export function MessageCard({
       toast.error('Please connect your wallet')
       return
     }
-    onReply?.(post.id)
+    onReply?.(post)
   }
 
   const handleShare = () => {
@@ -215,6 +218,15 @@ export function MessageCard({
             <div className="text-xs text-destructive bg-destructive/10 p-2 rounded">
               {likeError}
             </div>
+          )}
+
+          {/* Replies Section - only show for main posts, not replies themselves */}
+          {showRepliesSection && !post.isReply && (
+            <RepliesSection
+              parentPost={post}
+              onReply={onReply}
+              onTip={onTip}
+            />
           )}
         </div>
       </CardContent>

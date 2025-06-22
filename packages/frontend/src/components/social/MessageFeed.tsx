@@ -11,7 +11,7 @@ import { RefreshCw, AlertCircle } from 'lucide-react'
 import type { SocialMedia } from '@/lib/contracts/types'
 
 interface MessageFeedProps {
-  onReply?: (postId: bigint) => void
+  onReply?: (post: SocialMedia.PostStructOutput) => void
   onTip?: (post: SocialMedia.PostStructOutput) => void
   className?: string
   maxPosts?: number
@@ -249,7 +249,7 @@ export function MessageFeed({
 // Individual Post Renderer Component
 interface PostRendererProps {
   postId: bigint
-  onReply?: (postId: bigint) => void
+  onReply?: (post: SocialMedia.PostStructOutput) => void
   onTip?: (post: SocialMedia.PostStructOutput) => void
 }
 

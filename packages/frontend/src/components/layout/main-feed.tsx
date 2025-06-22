@@ -5,6 +5,7 @@ import {
   PostCreator,
   MessageFeed,
   TippingModal,
+  ReplyDialog,
 } from "@/components/social";
 import { Separator } from "@/components/ui/separator";
 import { useAccount } from "wagmi";
@@ -15,13 +16,21 @@ export function MainFeed() {
   const [selectedPostForTip, setSelectedPostForTip] =
     useState<SocialMedia.PostStructOutput | null>(null);
   const [isTipModalOpen, setIsTipModalOpen] = useState(false);
+  const [selectedPostForReply, setSelectedPostForReply] =
+    useState<SocialMedia.PostStructOutput | null>(null);
+  const [isReplyModalOpen, setIsReplyModalOpen] = useState(false);
 
   const handlePostCreated = (txHash: string) => {
     console.log("Post created:", txHash);
   };
 
-  const handleReply = (postId: bigint) => {
-    console.log("Reply to post:", postId);
+  const handleReply = (post: SocialMedia.PostStructOutput) => {
+    setSelectedPostForReply(post);
+    setIsReplyModalOpen(true);
+  };
+
+  const handleReplyCreated = (txHash: string) => {
+    console.log("Reply created:", txHash);
   };
 
   const handleTip = (post: SocialMedia.PostStructOutput) => {
@@ -54,6 +63,13 @@ export function MainFeed() {
         post={selectedPostForTip}
         isOpen={isTipModalOpen}
         onOpenChange={setIsTipModalOpen}
+      />
+
+      <ReplyDialog
+        post={selectedPostForReply}
+        isOpen={isReplyModalOpen}
+        onOpenChange={setIsReplyModalOpen}
+        onReplyCreated={handleReplyCreated}
       />
     </>
   );
