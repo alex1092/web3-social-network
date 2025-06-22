@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import React, { useState, useMemo, useEffect } from 'react'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -32,26 +32,39 @@ export function MessageCard({
 }: MessageCardProps) {
   const { isConnected } = useAccount()
   const [isShareDialogOpen, setIsShareDialogOpen] = useState(false)
+  const [optimisticLikeChange, setOptimisticLikeChange] = useState<number>(0)
   
   const {
     likePost,
     unlikePost,
     isPending: isLikePending,
     isLiked,
-    error: likeError
+    error: likeError,
+    isConfirmed
   } = useLikeMessage({
     postId: post.id,
     onSuccess: (hash) => {
-      toast.success(isLiked ? 'Post unliked!' : 'Post liked!', {
+      toast.success(isLiked ? 'Post liked!' : 'Post unliked!', {
         description: `Transaction hash: ${hash.slice(0, 10)}...`
       })
     },
     onError: (error) => {
+      setOptimisticLikeChange(0)
       toast.error('Failed to like post', {
         description: error
       })
     }
   })
+
+  useEffect(() => {
+    if (isConfirmed) {
+      setOptimisticLikeChange(0)
+    }
+  }, [isConfirmed])
+
+  const displayedLikes = useMemo(() => {
+    return Number(post.likes) + optimisticLikeChange
+  }, [post.likes, optimisticLikeChange])
 
   const handleLike = () => {
     if (!isConnected) {
@@ -60,8 +73,10 @@ export function MessageCard({
     }
     
     if (isLiked) {
+      setOptimisticLikeChange(-1)
       unlikePost()
     } else {
+      setOptimisticLikeChange(1)
       likePost()
     }
   }
@@ -157,7 +172,7 @@ export function MessageCard({
                 className={`flex items-center space-x-1 ${isLiked ? 'text-red-500' : 'text-muted-foreground'}`}
               >
                 <Heart className={`w-4 h-4 ${isLiked ? 'fill-current' : ''}`} />
-                <span className="text-xs">{post.likes.toString()}</span>
+                <span className="text-xs">{displayedLikes.toString()}</span>
               </Button>
               
               {showReplies && (

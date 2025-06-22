@@ -5,7 +5,7 @@ import {
   useAccount,
   useReadContract
 } from 'wagmi'
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { getSocialMediaContract, handleContractError } from '../utils'
 
 export interface UseLikeMessageProps {
@@ -34,11 +34,12 @@ export function useLikeMessage({
 }: UseLikeMessageProps): UseLikeMessageReturn {
   const { address } = useAccount()
   const [error, setError] = useState<string | null>(null)
+  const [optimisticLiked, setOptimisticLiked] = useState<boolean | null>(null)
   
   const contract = getSocialMediaContract()
 
   const { 
-    data: isLiked = false, 
+    data: actualIsLiked = false, 
     isLoading,
     refetch: refetchLikeStatus 
   } = useReadContract({
@@ -50,12 +51,14 @@ export function useLikeMessage({
     },
   })
 
+  const isLiked = optimisticLiked !== null ? optimisticLiked : actualIsLiked
+
   const { data: simulateLikeData, error: simulateLikeError } = useSimulateContract({
     ...contract,
     functionName: 'likePost',
     args: [postId],
     query: {
-      enabled: !!postId && !!address && !isLiked,
+      enabled: !!postId && !!address && !actualIsLiked,
     },
   })
 
@@ -64,7 +67,7 @@ export function useLikeMessage({
     functionName: 'unlikePost',
     args: [postId],
     query: {
-      enabled: !!postId && !!address && isLiked,
+      enabled: !!postId && !!address && actualIsLiked,
     },
   })
 
@@ -78,10 +81,10 @@ export function useLikeMessage({
       onSuccess: (hash) => {
         setError(null)
         onSuccess?.(hash)
-        refetchLikeStatus()
       },
       onError: (err) => {
-        const errorMessage = handleContractError(err, isLiked ? 'unlikePost' : 'likePost')
+        setOptimisticLiked(null)
+        const errorMessage = handleContractError(err, optimisticLiked ? 'likePost' : 'unlikePost')
         setError(errorMessage)
         onError?.(errorMessage)
       },
@@ -90,15 +93,21 @@ export function useLikeMessage({
 
   const { isLoading: isConfirming, isSuccess: isConfirmed } = useWaitForTransactionReceipt({
     hash: txHash,
+    query: {
+      onSuccess: () => {
+        setOptimisticLiked(null)
+        refetchLikeStatus()
+      },
+    },
   })
 
-  const likePost = () => {
+  const likePost = useCallback(() => {
     if (!address) {
       setError('Please connect your wallet')
       return
     }
 
-    if (isLiked) {
+    if (actualIsLiked) {
       setError('Post is already liked')
       return
     }
@@ -114,16 +123,18 @@ export function useLikeMessage({
       return
     }
 
+    setOptimisticLiked(true)
+    setError(null)
     writeContract(simulateLikeData.request)
-  }
+  }, [address, actualIsLiked, simulateLikeError, simulateLikeData, writeContract])
 
-  const unlikePost = () => {
+  const unlikePost = useCallback(() => {
     if (!address) {
       setError('Please connect your wallet')
       return
     }
 
-    if (!isLiked) {
+    if (!actualIsLiked) {
       setError('Post is not liked')
       return
     }
@@ -139,11 +150,14 @@ export function useLikeMessage({
       return
     }
 
+    setOptimisticLiked(false)
+    setError(null)
     writeContract(simulateUnlikeData.request)
-  }
+  }, [address, actualIsLiked, simulateUnlikeError, simulateUnlikeData, writeContract])
 
   const reset = () => {
     setError(null)
+    setOptimisticLiked(null)
     resetWrite()
   }
 

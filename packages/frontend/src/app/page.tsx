@@ -56,7 +56,7 @@ export default function Home() {
           <div className="lg:col-span-1">
             <div className="sticky top-8 space-y-6">
               {isConnected && (
-                <UserProfile showEditProfile={true} className="w-full" />
+                <UserProfile showEditProfile={false} className="w-full" />
               )}
 
               {!isConnected && (
